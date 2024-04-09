@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project-01</title>
+
+    <!-- Bootstrap -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/bs-custom-file-input/dist/bs-custom-file-input.js"></script>
+
+    <!-- Javascript/Ajax -->
+    <script>
+      $(document).ready(function () {
+        listing();
+        bsCustomFileInput.init();
+      });
+
+      //   fungsi ajax untuk menampilkan card-box
+      // dari database(judul & deskripsi)
+      function listing() {
+        $.ajax({
+          type: "GET",
+          url: "/diary",
+          data: {},
+          success: function (response) {
+            let articles = response["articles"];
+            for (let i = 0; i < articles.length; i++) {
+              let judul = articles[i]["judul"];
+              let deskripsi = articles[i]["konten"];
+              let gambar = articles[i]["gambar"];
+              let profil = articles[i]["profil"];
+              let tanggal = articles[i]["tanggal"];
+
+              let temp_html = `<div class="col-4 mb-4">
+                            <div class="card">
+                                <img
+                                src="./${gambar}"
+                                class="card-img-top"
+                                alt="image"
+                                />
+                              <div class="card-body">
+                                <img
+                                src="./${profil}"
+                                class="card-img-top  profile-image"
+                                alt="profil"
+                                />
+                                <h5 class="card-title">${judul}</h5>
+                                   <p class="card-text">${deskripsi}</p>
+                                      <h6 class="card-subtitle mb-2 text-muted">${tanggal}</h6>
+                              </div>
+                            </div>
+                          </div>`;
+              $("#cards-box").append(temp_html);
+            }
+          },
+        });
+      }
+
+      // fungsi menyimpan judul dan deskripsi artikel ke database
+      // dari sisi client
+      function posting() {
+        let title = $("#image-title").val();
+        if (!title) {
+          return alert("Judul ga boleh kosong^_^");
+        }
+        let content = $("#image-description").val();
+        if (!content) {
+          return alert("Deskripsi ga boleh kosong^_^");
+        }
+
+        let file = $("#image").prop("files")[0];
+        let profile = $("#profile_image").prop("files")[0];
+
+        let form_data = new FormData();
+
+        form_data.append("file_give", file);
+        form_data.append("profile_give", profile);
+        form_data.append("title_give", title);
+        form_data.append("content_give", content);
+        $.ajax({
+          type: "POST",
+          url: "/diary",
+          data: form_data,
+          contentType: false,
+          processData: false,
+          success: function (response) {
+            alert(response["msg"]);
+            console.log(response["msg-error"]);
+            window.location.reload();
+          },
+        });
+      }
+    </script>
+
+    <!-- CSS -->
+    <style>
+      .profile-image {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin: 10px 10px 2px 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="p-5 mb-4 bg-light rounded-3">
+        <div class="container-fluid py-5">
+          <h1 class="display-5 fw-bold">Personal Diary</h1>
+          <div class="input-group mb-3 custom-file">
+            <input class="form-control" type="file" id="image" />
+          </div>
+          <div class="profil mb-3">
+            <input class="form-control mb-3" type="file" id="profile_image" />
+            <input
+              type="text"
+              class="form-control"
+              id="image-title"
+              placeholder="The title of your image"
+            />
+          </div>
+          <div class="mb-3">
+            <textarea
+              placeholder="The description of your image"
+              class="form-control"
+              id="image-description"
+              rows="3"
+            ></textarea>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="posting()">
+            Save
+          </button>
+        </div>
+      </div>
+      <div class="row justify-content-start" id="cards-box"></div>
+    </div>
+  </body>
+</html>
